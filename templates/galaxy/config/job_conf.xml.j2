@@ -1,0 +1,43 @@
+<job_conf>
+    <plugins workers="4">
+        <plugin id="local_plugin" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner"/>
+        <plugin id="slurm" type="runner" load="galaxy.jobs.runners.slurm:SlurmJobRunner"/>
+    </plugins>
+    <destinations default="slurm">
+        <destination id="local_destination" runner="local_plugin"/>
+        <destination id="slurm" runner="slurm">
+            <param id="singularity_enabled">true</param>
+            <param id="singularity_run_extra_arguments"> -p </param>
+            <!-- see https://cvmfs.readthedocs.io/en/stable/cpt-configure.html -->
+            <param id="singularity_volumes">$defaults,/cvmfs:ro</param>
+            <env id="LC_ALL">C</env>
+            <env id="SINGULARITY_CACHEDIR">/tmp/singularity</env>
+            <env id="SINGULARITY_TMPDIR">/tmp</env>
+        </destination>
+        <destination id="slurm-2c" runner="slurm">
+            <param id="nativeSpecification">--nodes=1 --ntasks=1 --cpus-per-task=2</param>
+            <param id="singularity_enabled">true</param>
+            <param id="singularity_run_extra_arguments"> -p </param>
+            <param id="singularity_volumes">$defaults,/cvmfs:ro</param>
+            <env id="LC_ALL">C</env>
+            <env id="SINGULARITY_CACHEDIR">/tmp/singularity</env>
+            <env id="SINGULARITY_TMPDIR">/tmp</env>
+        </destination>
+        <destination id="singularity" runner="local_plugin">
+            <param id="singularity_enabled">true</param>
+            <!-- Ensuring a consistent collation environment is good for reproducibility. -->
+            <param id="singularity_run_extra_arguments"> -p </param>
+             <!-- see https://cvmfs.readthedocs.io/en/stable/cpt-configure.html -->
+            <param id="singularity_volumes">$defaults,/cvmfs:ro</param>
+            <env id="LC_ALL">C</env>
+            <!-- The cache directory holds the docker containers that get converted. -->
+            <env id="SINGULARITY_CACHEDIR">/tmp/singularity</env>
+            <!-- Singularity uses a temporary directory to build the squashfs filesystem. -->
+            <env id="SINGULARITY_TMPDIR">/tmp</env>
+        </destination>
+    </destinations>
+
+    <tools>
+        <!-- <tool id="testing" destination="dynamic_cores_time" resources="testing" /> -->
+    </tools>
+</job_conf>

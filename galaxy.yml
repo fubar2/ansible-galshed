@@ -1,0 +1,49 @@
+---
+- hosts: galaxyservers
+  become: true
+  become_user: root
+  vars_files:
+    - group_vars/secret.yml
+  pre_tasks:
+    - name: Install Dependencies
+      package:
+        name: ['acl', 'bzip2', 'git', 'make', 'python3-psycopg2', 'tar', 'virtualenv']
+    - name: Install library package
+      block:
+          - file:
+             path: /evol/srv/libraries
+             state: absent
+             owner: galaxy
+          - git:
+             repo: 'https://github.com/usegalaxy-eu/libraries-training-repo'
+             dest: /evol/srv/libraries/
+          - file:
+             path: /evol/srv/libraries/admin
+             state: directory
+             owner: galaxy
+  post_tasks:
+    - name: Install slurm-drmaa
+      package:
+        name: slurm-drmaa1
+  roles:
+    - galaxyproject.repos
+    - galaxyproject.slurm
+    - galaxyproject.postgresql
+    - role: natefoo.postgresql_objects
+      become: true
+      become_user: postgres
+    - geerlingguy.pip
+    - gantsign.golang
+    - cyverse-ansible.singularity
+    - galaxyproject.galaxy
+    - role: uchida.miniconda
+      become: true
+      become_user: "{{ galaxy_user.name }}"
+    #- usegalaxy_eu.rabbitmq
+    - galaxyproject.nginx
+    - galaxyproject.proftpd
+    - galaxyproject.tusd
+    - galaxyproject.cvmfs
+    #- galaxyproject.gxadmin
+    #- dj-wasabi.telegraf
+    #- usegalaxy_eu.tiaas2

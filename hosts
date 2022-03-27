@@ -1,0 +1,6 @@
+[galaxyservers]
+ross.genomicsvl-students.cloud.edu.au ansible_connection=ssh ansible_user=ubuntu ansible_sudo=yes
+[pulsarservers]
+gat-0.au.training.galaxyproject.eu ansible_user=ubuntu
+[monitoring]
+gat-0.eu.training.galaxyproject.eu ansible_connection=local ansible_user=ubuntu
