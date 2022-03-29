@@ -2,6 +2,8 @@
 - hosts: galaxyservers
   become: true
   become_user: root
+  vars:
+    -  nginx_check_conf: false
   vars_files:
     - group_vars/secret.yml
   pre_tasks:
@@ -26,6 +28,7 @@
       package:
         name: slurm-drmaa1
   roles:
+    - galaxyproject.nginx
     - galaxyproject.repos
     - galaxyproject.slurm
     - galaxyproject.postgresql
@@ -39,14 +42,17 @@
     - role: uchida.miniconda
       become: true
       become_user: "{{ galaxy_user.name }}"
-    - role: galaxyproject.galaxy_toolshed
-      become: true
-      become_user: "{{ galaxy_user.name }}"
     #- usegalaxy_eu.rabbitmq
-    - galaxyproject.nginx
     - galaxyproject.proftpd
     - galaxyproject.tusd
     - galaxyproject.cvmfs
     #- galaxyproject.gxadmin
     #- dj-wasabi.telegraf
     #- usegalaxy_eu.tiaas2
+
+  handlers:
+    - name: Restart Galaxy
+      become: yes
+      systemd:
+        name: galaxy
+        state: restarted
