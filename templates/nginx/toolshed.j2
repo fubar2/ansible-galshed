@@ -1,0 +1,45 @@
+server {
+    # Listen on port 443
+    listen        *:443 ssl ;
+    # The virtualhost is our domain name
+    server_name   "{{ inventory_hostname }}";
+
+    # Our log files will go here.
+    access_log  /var/log/nginx/access.log;
+    error_log   /var/log/nginx/error.log;
+    rewrite ^$ / ;
+    location / { # toolshed seems to want to run at root. Must be a way to finesse in gunicorn. TODO fix!
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_pass http://localhost:9009;
+    }
+
+
+    # Static files can be more efficiently served by Nginx. Why send the
+    # request to uWSGI which should be spending its time doing more useful
+    # things like serving Galaxy!
+    location /static {
+        alias /var/www/tsstatic;
+        expires 24h;
+    }
+
+    # In Galaxy instances started with run.sh, many config files are
+    # automatically copied around. The welcome page is one of them. In
+    # production, this step is skipped, so we will manually alias that.
+    location /static/welcome.html {
+        alias /var/www/tsstatic/welcome.html.sample;
+        expires 24h;
+    }
+
+
+    location /robots.txt {
+        alias /var/www/tsstatic/robots.txt;
+    }
+
+    location /favicon.ico {
+        alias /var/www/tsstatic/favicon.ico;
+    }
+
+}

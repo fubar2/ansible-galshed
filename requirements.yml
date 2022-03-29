@@ -24,19 +24,22 @@
   version: 0.0.2
 - src: galaxyproject.slurm
   version: 0.1.3
-- name: usegalaxy_eu.rabbitmq
-  version: 0.1.0
-- src: galaxyproject.pulsar
-  version: 1.0.8
-- src: galaxyproject.gxadmin
-  version: 0.0.8
-- src: usegalaxy_eu.influxdb
-  version: v6.0.7
-- src: cloudalchemy.grafana
-  version: 0.14.2
-- src: dj-wasabi.telegraf
-  version: 0.12.0
-- src: usegalaxy_eu.tiaas2
-  version: 0.0.8
 - src: galaxyproject.proftpd
   version: 0.3.1
+- src: galaxyproject.galaxy_toolshed
+  version: 0.2.3
+#- src: usegalaxy_eu.tiaas2
+#  version: 0.0.8
+#- name: usegalaxy_eu.rabbitmq
+  #version: 0.1.0
+#- src: galaxyproject.pulsar
+  #version: 1.0.8
+#- src: galaxyproject.gxadmin
+  #version: 0.0.8
+#- src: usegalaxy_eu.influxdb
+  #version: v6.0.7
+#- src: cloudalchemy.grafana
+  #version: 0.14.2
+#- src: dj-wasabi.telegraf
+  #version: 0.12.0
+

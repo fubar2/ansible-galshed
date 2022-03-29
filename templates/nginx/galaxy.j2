@@ -1,6 +1,6 @@
 server {
     # Listen on port 443
-    listen        *:443 ssl default_server;
+    listen        *:443 ssl ;
     # The virtualhost is our domain name
     server_name   "{{ inventory_hostname }}";
 
@@ -11,10 +11,10 @@ server {
     # The most important location block, by default all requests are sent to uWSGI
     location / {
         # This is the backend to send the requests to.
-        uwsgi_pass {{ galaxy_config.uwsgi.socket }};
+        uwsgi_pass 127.0.0.1:5000;
         uwsgi_param UWSGI_SCHEME $scheme;
         include uwsgi_params;
-        uwsgi_read_timeout 300;
+        uwsgi_read_timeout 600;
     }
 
     location /api/upload/resumable_upload {

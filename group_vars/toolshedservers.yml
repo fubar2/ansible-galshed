@@ -1,0 +1,130 @@
+---
+# Python 3 support
+pip_virtualenv_command: /usr/bin/python3 -m virtualenv # usegalaxy_eu.certbot, usegalaxy_eu.tiaas2, galaxyproject.galaxy
+certbot_virtualenv_package_name: python3-virtualenv    # usegalaxy_eu.certbot
+pip_package: python3-pip                               # geerlingguy.pip
+
+# Reasonable defaults for custom layouts. To use, you must define:
+#
+# - galaxy_server_dir
+# - galaxy_venv_dir
+# - galaxy_config_dir
+# - galaxy_mutable_data_dir
+
+# Galaxy and Toolshed
+galaxy_build_client: false
+galaxy_commit_id: release_22.01
+galaxy_config_dir: "{{ galaxy_mutable_data_dir }}/config"
+galaxy_config_style: yaml
+galaxy_create_user: true
+galaxy_force_checkout: false
+galaxy_group: toolshed
+galaxy_layout: custom
+galaxy_log_dir: "{{ galaxy_mutable_data_dir }}/logs"
+galaxy_manage_paths: false
+galaxy_mutable_data_dir: "{{ galaxy_root }}/var"
+galaxy_reports_path: "{{ galaxy_config_dir }}/reports.yml"
+galaxy_restart_handler_name: Restart Toolshed
+galaxy_root: /evol/srv/toolshed
+galaxy_separate_privileges: false
+galaxy_server_dir: /evol/srv/toolshed/server
+galaxy_tool_dependency_dir: "{{ galaxy_mutable_data_dir }}/dependencies"
+galaxy_toolshed_config_admin_users: "ross.lazarus@gmail.com,admin@galaxy.org"
+galaxy_toolshed_config_dir: "{{ galaxy_mutable_data_dir }}/config"
+galaxy_toolshed_config_file: "{{ galaxy_toolshed_config_dir }}/tool_shed.yml"
+galaxy_toolshed_config_id_secret: " some silly rand0m t3xt  @#"
+galaxy_toolshed_config_style: "yaml"
+galaxy_toolshed_instance_codename: "TestToolshed"
+galaxy_toolshed_log_dir: "{{ galaxy_mutable_data_dir }}/logs"
+galaxy_toolshed_mutable_config_dir: "{{ galaxy_mutable_data_dir }}/config"
+galaxy_toolshed_mutable_data_dir: "{{ galaxy_mutable_data_dir }}"
+galaxy_toolshed_server_dir: "{{ galaxy_server_dir }}"
+galaxy_toolshed_venv_dir: "{{ galaxy_venv_dir }}"
+galaxy_user: {name: toolshed, shell: /bin/bash}
+galaxy_user: toolshed
+galaxy_venv_dir: "{{ galaxy_root }}/venv"
+
+miniconda_prefix: "{{ galaxy_tool_dependency_dir }}/_conda"
+miniconda_version: 4.7.12
+miniconda_manage_dependencies: false
+
+galaxy_toolshed_config:
+  gunicorn:
+    bind: localhost:9009
+    config: "{{ galaxy_server_dir }}/lib/galaxy/web_stack/gunicorn_config.py"
+    gunicorn_extra_args: '--forwarded-allow-ips="*"'
+
+  tool_shed:
+    id_secret: "{{ galaxy_toolshed_config_id_secret }}"
+    admin_users: "{{ galaxy_toolshed_config_admin_users }}"
+    galaxy_separate_privileges: false
+    file_path: "{{ galaxy_toolshed_mutable_data_dir }}/tsfiles"
+    new_file_path: "{{ galaxy_toolshed_mutable_data_dir }}/tsnew"
+    tool_data_path: "{{ galaxy_toolshed_mutable_data_dir }}/tool-data"
+    database_connection: "sqlite:///{{ galaxy_mutable_data_dir }}/community.sqlite?isolation_level=IMMEDIATE"
+    #database_connection: "postgresql:///galaxy_testtoolshed?host=/var/run/postgresql"
+    # database_engine_option_server_side_cursors: "True"
+    log_level: "DEBUG"
+    debug: "False"
+    use_lint: "False"
+    num_tool_test_results_saved: "5"
+    support_url: "https://galaxyproject.org/support"
+    smtp_server: "smtp.psu.edu"
+    email_from: "galaxy-no-reply@toolshed.g2.bx.psu.edu"
+    brand: 'RossToolShed'
+    conda_auto_init: false
+    tool_dependency_dir: "{{ galaxy_toolshed_mutable_data_dir }}/dependencies"
+    # stuff that shouldn't be here but maybe has to
+  uwsgi:
+    http-socket: 127.0.0.1:9009
+    buffer-size: 16384
+    processes: 1
+    threads: 4
+    offload-threads: 2
+    master: true
+    virtualenv: "{{ galaxy_venv_dir }}"
+    pythonpath: "{{ galaxy_server_dir }}/lib"
+    module: galaxy.webapps.galaxy.buildapp:uwsgi_app()
+    thunder-lock: true
+    die-on-term: true
+    hook-master-start:
+      - unix_signal:2 gracefully_kill_them_all
+      - unix_signal:15 gracefully_kill_them_all
+    py-call-osafterfork: true
+    enable-threads: true
+    mule:
+      - lib/galaxy/main.py
+      - lib/galaxy/main.py
+    farm: job-handlers:1,2
+
+# Certbot
+certbot_auto_renew_hour: "{{ 23 |random(seed=inventory_hostname)  }}"
+certbot_auto_renew_minute: "{{ 59 |random(seed=inventory_hostname)  }}"
+certbot_auth_method: --webroot
+certbot_install_method: virtualenv
+certbot_auto_renew: yes
+certbot_auto_renew_user: root
+certbot_environment: production
+certbot_well_known_root: /srv/nginx/_well-known_root
+certbot_share_key_users:
+  - nginx
+certbot_post_renewal: |
+    systemctl restart nginx || true
+    systemctl restart rabbitmq-server || true
+    systemctl restart proftpd || true
+certbot_domains:
+ - "{{ inventory_hostname }}"
+certbot_agree_tos: --agree-tos
+
+# NGINX
+nginx_selinux_allow_local_connections: true
+nginx_servers:
+  - redirect-ssl
+nginx_ssl_servers:
+  - tool_shed
+nginx_enable_default_server: false
+nginx_conf_http:
+  client_max_body_size: 1g
+nginx_ssl_role: usegalaxy_eu.certbot
+nginx_conf_ssl_certificate: /etc/ssl/certs/fullchain.pem
+nginx_conf_ssl_certificate_key: /etc/ssl/user/privkey-nginx.pem

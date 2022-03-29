@@ -7,28 +7,46 @@ pip_package: python3-pip                               # geerlingguy.pip
 # PostgreSQL
 postgresql_objects_users:
   - name: galaxy
+  - name: toolshed
+    password: null
 postgresql_objects_databases:
-  - name: galaxy
+  - name: toolshed
+  - name: toolshed
+    owner: toolshed
 
 
 # PostgreSQL Backups
-postgresql_backup_dir: /data/backups
+postgresql_backup_dir: /evol/data/backups
 postgresql_backup_local_dir: "{{ '~postgres' | expanduser }}/backups"
 
 # Galaxy
 galaxy_create_user: true
 galaxy_separate_privileges: true
 galaxy_manage_paths: true
-galaxy_layout: root-dir
+galaxy_layout: custom
 galaxy_root: /evol/srv/galaxy
-galaxy_server_dir: /evol/srv/server
-galaxy_config_dir: /evol/srv/server/config
-galaxy_mutable_data_dir
-# this is what management does anyway so deal with it
+galaxy_server_dir: "{{ galaxy_root }}/server"
+galaxy_config_dir: "{{ galaxy_root}}/config"
+galaxy_mutable_data_dir: "{{ galaxy_root }}/var"
+galaxy_venv_dir: "{{ galaxy_root }}/venv"
 galaxy_user: {name: galaxy, shell: /bin/bash}
 galaxy_commit_id: release_22.01
 galaxy_force_checkout: true
 galaxy_reports_path: "{{ galaxy_config_dir }}/reports.yml"
+
+#galaxy_config_dir: "{{ galaxy_mutable_data_dir }}/config"
+galaxy_tool_dependency_dir: "{{ galaxy_mutable_data_dir }}/dependencies"
+galaxy_toolshed_server_dir: "{{ galaxy_server_dir }}"
+galaxy_toolshed_instance_codename: "TestToolshed"
+#galaxy_toolshed_mutable_config_dir: "{{ galaxy_root }}/var/config"
+#galaxy_toolshed_mutable_data_dir: "{{ galaxy_root }}/var/data"
+#galaxy_toolshed_log_dir: "{{ galaxy_toolshed_mutable_data_dir }}/logs"
+galaxy_toolshed_venv_dir: "{{ galaxy_venv_dir }}"
+galaxy_toolshed_config_dir: "{{ galaxy_mutable_data_dir }}"
+#galaxy_toolshed_config_file: "{{ galaxy_toolshed_config_dir }}/tool_shed.yml"
+galaxy_toolshed_config_style: "yaml"
+galaxy_toolshed_config_admin_users: "ross.lazarus@gmail.com,admin@galaxy.org"
+galaxy_toolshed_config_id_secret: " some silly rand0m t3xt  @#"
 miniconda_prefix: "{{ galaxy_tool_dependency_dir }}/_conda"
 miniconda_version: 4.7.12
 miniconda_manage_dependencies: false
@@ -106,6 +124,40 @@ galaxy_config:
       - lib/galaxy/main.py
       - lib/galaxy/main.py
     farm: job-handlers:1,2
+
+galaxy_toolshed_config:
+  gunicorn:
+    bind: localhost:9009
+    config: "{{ galaxy_server_dir }}/lib/galaxy/web_stack/gunicorn_config.py"
+    gunicorn_extra_args: '--forwarded-allow-ips="*"'
+
+  tool_shed:
+    # secrets
+    id_secret: "{{ galaxy_toolshed_config_id_secret }}"
+    admin_users: "{{ galaxy_toolshed_config_admin_users }}"
+    galaxy_separate_privileges: false
+    # paths
+
+    file_path: "{{ galaxy_toolshed_mutable_data_dir }}/tsfiles"
+    new_file_path: "{{ galaxy_toolshed_mutable_data_dir }}/tsnew"
+    tool_data_path: "{{ galaxy_toolshed_mutable_data_dir }}/tool-data"
+
+    # general stuff
+    database_connection: "sqlite:///{{ galaxy_mutable_data_dir }}/community.sqlite?isolation_level=IMMEDIATE"
+    #database_connection: "postgresql:///galaxy_testtoolshed?host=/var/run/postgresql"
+    # database_engine_option_server_side_cursors: "True"
+    log_level: "DEBUG"
+    debug: "False"
+    use_lint: "False"
+    num_tool_test_results_saved: "5"
+    support_url: "https://galaxyproject.org/support"
+    smtp_server: "smtp.psu.edu"
+    email_from: "galaxy-no-reply@toolshed.g2.bx.psu.edu"
+    brand: 'RossToolShed'
+    conda_auto_init: false
+    tool_dependency_dir: "{{ galaxy_toolshed_mutable_data_dir }}/dependencies"
+    # stuff that shouldn't be here but maybe has to
+
 
 galaxy_config_templates:
   - src: templates/galaxy/config/job_resource_params_conf.xml.j2

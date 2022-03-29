@@ -1,0 +1,31 @@
+[Unit]
+Description=Tool_Shed
+After=network.target
+After=time-sync.target
+
+[Service]
+UMask=022
+Type=simple
+User={{ __galaxy_user_name }}
+Group={{ __galaxy_user_group }}
+WorkingDirectory={{ galaxy_server_dir }}
+TimeoutStartSec=10
+ExecStart=/usr/bin/sh run_tool_shed.sh
+
+Environment=HOME={{ galaxy_root }}
+Environment=VIRTUAL_ENV={{ galaxy_venv_dir }}
+Environment=PATH={{ galaxy_venv_dir }}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
+Environment=DOCUTILSCONFIG=
+Environment=TOOL_SHED_CONFIG_FILE={{galaxy_toolshed_config_file}}
+{% for env in galaxy_systemd_env %}
+Environment={{ env }}
+{% endfor %}
+MemoryLimit={{ __galaxy_systemd_memory_limit_merged.mule }}G
+Restart=always
+
+MemoryAccounting=yes
+CPUAccounting=yes
+BlockIOAccounting=yes
+
+[Install]
+WantedBy=multi-user.target
