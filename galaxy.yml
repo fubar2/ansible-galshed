@@ -2,8 +2,8 @@
 - hosts: galaxyservers
   become: true
   become_user: root
-  vars:
-    -  nginx_check_conf: false
+  #vars:
+    #-  nginx_check_conf: false
   vars_files:
     - group_vars/secret.yml
   pre_tasks:
