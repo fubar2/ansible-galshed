@@ -142,8 +142,8 @@ galaxy_config_templates:
   - src: templates/galaxy/config/reports.yml
     dest: "{{ galaxy_reports_path }}"
 
-galaxy_local_tools:
-- testing.xml
+#galaxy_local_tools:
+#- testing.xml
 
 # systemd
 galaxy_manage_systemd: yes
@@ -165,10 +165,9 @@ certbot_share_key_users:
   - proftpd
 certbot_post_renewal: |
     systemctl restart nginx || true
-    systemctl restart rabbitmq-server || true
-    systemctl restart proftpd || true
 certbot_domains:
   - "{{ inventory_hostname }}"
+  - toolshed.genomicsvl-students.cloud.edu.au
 certbot_agree_tos: --agree-tos
 
 # NGINX
@@ -181,11 +180,14 @@ nginx_enable_default_server: false
 nginx_conf_http:
   client_max_body_size: 1g
 nginx_ssl_role: usegalaxy_eu.certbot
-#nginx_conf_ssl_certificate: /etc/ssl/certs/fullchain.pem
-#nginx_conf_ssl_certificate_key: /etc/ssl/user/privkey-nginx.pem
-nginx_conf_ssl_certificate: "/etc/ssl/certs/{{ inventory_hostname }}.fullchain.pem"
-nginx_conf_ssl_certificate_key: "/etc/ssl/user/{{ inventory_hostname }}.key.pem"
-nginx_conf_ssl_trusted_certificate: "{{ inventory_hostname }}.fullchain.pem" # has directory prepended at template
+#roles/usegalaxy_eu.certbot/tasks/post-renewal.yml changed to use these - otherwise fixed certbot values required here
+nginx_conf_ssl_certificate: /etc/ssl/certs/fullchain.pem
+nginx_conf_ssl_certificate_key: /etc/ssl/user/privkey-nginx.pem
+# MUST also over-ride certbot_share_key_dir: /etc/ssl/user/{{ inventory_hostname }}
+# for distinct hostnames if you want more than one.
+#nginx_conf_ssl_certificate: "/etc/ssl/certs/{{ inventory_hostname }}.fullchain.pem"
+#nginx_conf_ssl_certificate_key: "/etc/ssl/user/{{ inventory_hostname }}.key.pem"
+#nginx_conf_ssl_trusted_certificate: "{{ inventory_hostname }}.fullchain.pem" #directory prepended by template
 # Golang
 golang_gopath: '/opt/workspace-go'
 # Singularity target version
