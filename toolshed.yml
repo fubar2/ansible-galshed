@@ -2,9 +2,20 @@
   become: true
   become_user: root
   vars:
-     # systemd
     galaxy_manage_systemd: yes
-
+    galaxy_repo: https://github.com/galaxyproject/galaxy.git
+    galaxy_commit_id: release_22.01
+    galaxy_user: toolshed
+    __galaxy_user_name: "{{ galaxy_user }}"
+    __galaxy_user_group: "{{ galaxy_user }}"
+    __galaxy_systemd_memory_limit:
+      # This is for the entire group of uWSGI master, web worker, and mule processes
+      mule: 16
+      reports: 5
+    __galaxy_systemd_memory_limit_merged: "{{ __galaxy_systemd_memory_limit | combine(galaxy_systemd_memory_limit | default({})) }}"
+    galaxy_systemd_env: []
+    galaxy_server_dir: /evol/srv/toolshed/server
+    galaxy_root: /evol/srv/toolshed
 
   pre_tasks:
     - name: Install Dependencies
@@ -13,19 +24,9 @@
     - name: Add toolshed user
       ansible.builtin.user:
         name: toolshed
+    - include: clone.yml
 
   roles:
-    - role: galaxyproject.galaxy
-      become_user: "toolshed"
-      galaxy_manage_clone: yes
-      galaxy_manage_static_setup: yes
-      galaxy_manage_mutable_setup: yes
-      galaxy_manage_database: no
-      galaxy_manage_paths: yes
-      galaxy_build_client: false
-      galaxy_fetch_eggs: yes
-      galaxy_manage_systemd: false
-
     - role: galaxyproject.galaxy_toolshed
       become_user: "toolshed"
       galaxy_toolshed_manage_static_setup: yes
@@ -35,12 +36,6 @@
     - galaxyproject.nginx
 
   post_tasks:
-    - name: Fix unwanted privsep permissions on server
-      file:
-        path: "{{ galaxy_server_dir }}"
-        owner: toolshed
-        group: toolshed
-        recurse: yes
     - name: Ansible copy file to remote server
       copy:
           src: "{{ galaxy_server_dir }}/static/"
