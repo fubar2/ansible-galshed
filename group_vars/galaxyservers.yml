@@ -21,6 +21,7 @@ postgresql_backup_dir: /evol/data/backups
 postgresql_backup_local_dir: "{{ '~postgres' | expanduser }}/backups"
 
 # Galaxy
+galaxy_local_tools_dir: "{{ galaxy_root }}/local_tools"
 galaxy_create_user: true
 galaxy_separate_privileges: true
 galaxy_manage_paths: true
@@ -142,8 +143,10 @@ galaxy_config_templates:
   - src: templates/galaxy/config/reports.yml
     dest: "{{ galaxy_reports_path }}"
 
-#galaxy_local_tools:
-#- testing.xml
+galaxy_local_tools:
+- toolfactory.xml
+- planemo_test.xml
+- test.xml
 
 # systemd
 galaxy_manage_systemd: yes

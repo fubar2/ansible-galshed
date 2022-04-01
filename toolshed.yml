@@ -31,10 +31,36 @@
       galaxy_toolshed_manage_static_setup: yes
       galaxy_toolshed_manage_database: yes
       galaxy_manage_systemd: true
-
+      galaxy_build_client: true
     - galaxyproject.nginx
 
   post_tasks:
+    - name: Fix unwanted privsep permissions on server
+      file:
+        path: "{{ galaxy_server_dir }}"
+        owner: toolshed
+        group: toolshed
+        recurse: yes
+    - name: Ansible copy file to remote server
+      copy:
+          src: "{{ galaxy_server_dir }}/static/"
+          dest: "/var/www/tsstatic/"
+          group: www-data
+          owner: www-data
+          remote_src: true
+    - name: Create Tool Shed hgweb dir
+      file:
+        state: directory
+        path: "{{ galaxy_toolshed_mutable_config_dir }}/hgweb_config_dir"
+        group: toolshed
+        owner: toolshed
+    - name: Create Tool Shed hgweb file
+      copy:
+        content: "[paths]"
+        dest: "{{ galaxy_toolshed_mutable_config_dir }}/hgweb_config_dir/hgweb.config"
+        force: no
+        group: toolshed
+        owner: toolshed
     - name: Fixup system service
       block:
         - name: Deploy Toolshed Unit

@@ -40,9 +40,10 @@ galaxy_toolshed_log_dir: "{{ galaxy_mutable_data_dir }}/logs"
 galaxy_toolshed_mutable_config_dir: "{{ galaxy_mutable_data_dir }}/config"
 galaxy_toolshed_mutable_data_dir: "{{ galaxy_mutable_data_dir }}"
 galaxy_toolshed_server_dir: "{{ galaxy_server_dir }}"
-galaxy_toolshed_venv_dir: "{{ galaxy_venv_dir }}"
+galaxy_toolshed_venv_dir: "{{ galaxy_root }}/.venv"
+# !%%@@# hardwired there?!! things seem to break if anything else
 galaxy_user: {name: toolshed, shell: /bin/bash}
-galaxy_venv_dir: "{{ galaxy_root }}/venv"
+galaxy_venv_dir: "{{ galaxy_toolshed_venv_dir }}"
 
 miniconda_prefix: "{{ galaxy_tool_dependency_dir }}/_conda"
 miniconda_version: 4.7.12
