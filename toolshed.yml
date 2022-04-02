@@ -16,7 +16,8 @@
 
   roles:
     - role: galaxyproject.galaxy
-      become_user: "toolshed"
+      become_user: toolshed
+      galaxy_user: toolshed
       galaxy_manage_clone: yes
       galaxy_manage_static_setup: yes
       galaxy_manage_mutable_setup: yes
@@ -27,7 +28,7 @@
       galaxy_manage_systemd: false
 
     - role: galaxyproject.galaxy_toolshed
-      become_user: "toolshed"
+      become_user: toolshed
       galaxy_toolshed_manage_static_setup: yes
       galaxy_toolshed_manage_database: yes
       galaxy_manage_systemd: true
@@ -41,6 +42,18 @@
         owner: toolshed
         group: toolshed
         recurse: yes
+    - name: Fix mysterious call to run sudo chown -R 1001:1003 "/evol/srv/toolshed/.npm" sudo chown -R $USER:$(id -gn $USER) /evol/srv/toolshed/.config
+      file:
+        path: "{{ galaxy_root }}/.npm"
+        owner: toolshed
+        group: toolshed
+        state: directory
+    - name: Fix mysterious call to sudo chown -R $USER:$(id -gn $USER) /evol/srv/toolshed/.config
+      file:
+        path: "{{ galaxy_root }}/.config"
+        owner: toolshed
+        group: toolshed
+        state: directory
     - name: Ansible copy file to remote server
       copy:
           src: "{{ galaxy_server_dir }}/static/"
@@ -82,14 +95,7 @@
 
   handlers:
     - name: Restart Toolshed
-      become: yes
       systemd:
         name: toolshed
         state: restarted
 
-
-  #handlers:
-    #- name: Restart Galaxy
-      #supervisorctl:
-        #name: galaxy
-        #state: restarted
